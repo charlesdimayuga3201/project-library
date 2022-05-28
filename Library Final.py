@@ -5,7 +5,7 @@ from tkinter.ttk import Combobox
 from tkinter.ttk import Treeview
 import datetime
 
-b1,b2,b3,b4,b5,b6,b7,sID,cur,con,e1,e2,e3,e4,e5,i,ps=None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None
+b1,b2,b3,b4,b5,b6,b7,b8,sID,cur,con,e1,e2,e3,e4,e5,i,ps=None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None
 window,win=None,None
 com1d,com1m,com1y,com2d,com2m,com2y=None,None,None,None,None,None
 
@@ -58,10 +58,10 @@ def addbook():
     win.title('Add Book')
     win.geometry("400x400+480+180")
     win.resizable(False,False)
-    sub=Label(win,text='SUBJECT')
-    tit=Label(win,text='TITLE')
-    auth=Label(win,text='AUTHOR')
-    ser=Label(win,text='SERIAL NO')
+    sub=Label(win,text='TITLE')
+    tit=Label(win,text='AUTHOR')
+    auth=Label(win,text='GENRE')
+    ser=Label(win,text='BOOK ID')
     global e1,b,b1
     e1=Entry(win,width=25)
     global e2
@@ -215,14 +215,14 @@ def returnbook():
 
 def returnbooks():
     connectdb()
-    q='SELECT exp FROM BookIssue WHERE serial="%s"'
+    q='SELECT exp FROM BookIssue WHERE bookids="%s"'
     cur.execute(q%(e4.get()))
     e=cur.fetchone()
     e=str(e[0])
     i=datetime.date.today()
     e=datetime.date(int(e[:4]),int(e[5:7]),int(e[8:10]))
     if i<=e:
-        a='DELETE FROM BookIssue WHERE serial="%s"'
+        a='DELETE FROM BookIssue WHERE bookids="%s"'
         cur.execute(a%e4.get())
         con.commit()
     else:
@@ -238,15 +238,15 @@ def viewbook():
     win.geometry("800x300+270+180")
     win.resizable(False,False)
 
-    treeview=Treeview(win,columns=("Subject","Title","Author","Serial No"),show='headings')
-    treeview.heading("Subject", text="Subject")
+    treeview=Treeview(win,columns=("Title","Author","Genre","Book ID"),show='headings')
     treeview.heading("Title", text="Title")
     treeview.heading("Author", text="Author")
-    treeview.heading("Serial No", text="Serial No")
-    treeview.column("Subject", anchor='center')
+    treeview.heading("Genre", text="Genre")
+    treeview.heading("Book ID", text="Book ID")
     treeview.column("Title", anchor='center')
     treeview.column("Author", anchor='center')
-    treeview.column("Serial No", anchor='center')
+    treeview.column("Genre", anchor='center')
+    treeview.column("Book ID", anchor='center')
     index=0
     iid=0
     connectdb()
@@ -262,21 +262,22 @@ def viewbook():
 
 def issuedbook():
     connectdb()
-    q='SELECT * FROM BookIssue'
-    cur.execute(q)
+    q='SELECT * FROM BookIssue where stdid = %s'
+    val = (sID,)
+    cur.execute(q,val)
     details=cur.fetchall()
     if len(details)!=0:
         win=Tk()
         win.title('View Books')
         win.geometry("800x300+270+180")
         win.resizable(False,False)    
-        treeview=Treeview(win,columns=("Student ID","Serial No","Issue Date","Expiry Date"),show='headings')
+        treeview=Treeview(win,columns=("Student ID","Book ID","Issue Date","Expiry Date"),show='headings')
         treeview.heading("Student ID", text="Student ID")
-        treeview.heading("Serial No", text="Serial No")
+        treeview.heading("Book ID", text="Book ID")
         treeview.heading("Issue Date", text="Issue Date")
         treeview.heading("Expiry Date", text="Expiry Date")
         treeview.column("Student ID", anchor='center')
-        treeview.column("Serial No", anchor='center')
+        treeview.column("Book ID", anchor='center')
         treeview.column("Issue Date", anchor='center')
         treeview.column("Expiry Date", anchor='center')
         index=0
@@ -289,68 +290,37 @@ def issuedbook():
     else:
         messagebox.showinfo("Books","No Book Issued")
     closedb()
-def deletebook():
-    global win
-    win.destroy()
-    win=Tk()
-    win.title('Delete Book')
-    win.geometry("400x400+480+180")
-    win.resizable(False,False)
-    usid=Label(win,text='Serial NO')
-    paswrd=Label(win,text='PASSWORD')
-    global e1
-    e1=Entry(win)
-    global e2,b2
-    e2=Entry(win)
-    b1=Button(win, height=2,width=17,text=' DELETE ',command=deletebooks)
-    b2=Button(win, height=2,width=17,text=' CLOSE ',command=closebooks)
-    usid.place(x=80,y=100)
-    paswrd.place(x=70,y=140)
-    e1.place(x=180,y=100)
-    e2.place(x=180,y=142)
-    b1.place(x=180,y=180)
-    b2.place(x=180,y=230)
-    win.mainloop()
-
-def deletebooks():
-    connectdb()
-    if e2.get()=='stud':
-        q='DELETE FROM Book WHERE serial="%i"'
-        cur.execute(q%(int(e1.get())))
-        con.commit()
-        win.destroy()
-        messagebox.showinfo("Delete", "Book Deleted")
-        closedb()
-        libr()
-    else:
-        messagebox.showinfo("Error", "Incorrect Password")
-        closedb()
 
 def loginadmin():
     if e1.get()=='admin' and e2.get()=='admin':
-        admin();
+        admin()
 
 def admin():
     window.withdraw()
     global win,b1,b2,b3,b4,cur,con
     win=Tk()
     win.title('Admin')
-    win.geometry("400x470+480+180")
+    win.geometry("400x500+480+180")
     win.resizable(False,False)
     b1=Button(win, height=2,width=25,text=' Add User ',command=adduser)
-    b2=Button(win, height=2,width=25,text=' View User ',command=viewuser)
-    b5=Button(win, height=2,width=25,text=' Add Book ',command=addbook)
-    b6=Button(win, height=2,width=25,text=' View Book ',command=viewbook)
-    b7=Button(win, height=2,width=25,text=' Delete Book ',command=deletebook)
-    b3=Button(win, height=2,width=25,text=' Delete User ',command=deleteuser)
-    b4=Button(win, height=2,width=25,text=' LogOut ',command=logout)
+    b2=Button(win, height=2,width=25,text=' Add Book ',command=addbook)
+    b3=Button(win, height=2,width=25,text=' View User ',command=viewuser)
+    b4=Button(win, height=2,width=25,text=' View Book ',command=viewbook)
+    b5=Button(win, height=2,width=25,text=' Issued Book ',command=issuedbook)
+    b6=Button(win, height=2,width=25,text=' Delete Book ',command=deletebook)
+    b7=Button(win, height=2,width=25,text=' Delete User ',command=deleteuser)
+    b8=Button(win, height=2,width=25,text=' LogOut ',command=logout)
     b1.place(x=110,y=60)
     b2.place(x=110,y=110)
-    b3.place(x=110,y=310)
-    b4.place(x=110,y=360)
-    b5.place(x=110,y=160)
-    b6.place(x=110,y=210)
-    b7.place(x=110,y=260)
+    b3.place(x=110,y=160)
+    b4.place(x=110,y=210)
+    b5.place(x=110,y=260)
+    b6.place(x=110,y=310)
+    b7.place(x=110,y=360)
+    b8.place(x=110,y=410)
+    
+    
+    
     win.mainloop()
 
 def logout():    
@@ -373,10 +343,10 @@ def addbook():
     win.title('Add Book')
     win.geometry("400x400+480+180")
     win.resizable(False,False)
-    sub=Label(win,text='SUBJECT')
-    tit=Label(win,text='TITLE')
-    auth=Label(win,text='AUTHOR')
-    ser=Label(win,text='SERIAL NO')
+    sub=Label(win,text='TITLE')
+    tit=Label(win,text='AUTHOR')
+    auth=Label(win,text='GENRE')
+    ser=Label(win,text='BOOK ID')
     global e1,b,b1,b5,b4
     e1=Entry(win,width=25)
     global e2
@@ -398,7 +368,11 @@ def addbook():
     b.place(x=180,y=210)
     b1.place(x=180,y=252)
     win.mainloop()
-    
+
+def closebooks1():
+    global win
+    win.destroy()
+    admin()
 
 def addbooks():
     connectdb()
@@ -418,15 +392,15 @@ def viewbook():
     win.geometry("800x300+270+180")
     win.resizable(False,False)
 
-    treeview=Treeview(win,columns=("Subject","Title","Author","Serial No"),show='headings')
-    treeview.heading("Subject", text="Subject")
+    treeview=Treeview(win,columns=("Title","Author","Genre","Book ID"),show='headings')
     treeview.heading("Title", text="Title")
     treeview.heading("Author", text="Author")
-    treeview.heading("Serial No", text="Serial No")
-    treeview.column("Subject", anchor='center')
+    treeview.heading("Genre", text="Genre")
+    treeview.heading("Book ID", text="Book ID")
     treeview.column("Title", anchor='center')
     treeview.column("Author", anchor='center')
-    treeview.column("Serial No", anchor='center')
+    treeview.column("Genre", anchor='center')
+    treeview.column("Book ID", anchor='center')
     index=0
     iid=0
     connectdb()
@@ -440,10 +414,33 @@ def viewbook():
     win.mainloop()
     closedb()
 
+def deletebook():
+    global win
+    win.destroy()
+    win=Tk()
+    win.title('Delete Book')
+    win.geometry("400x400+480+180")
+    win.resizable(False,False)
+    usid=Label(win,text='BOOK ID')
+    paswrd=Label(win,text='PASSWORD')
+    global e1
+    e1=Entry(win)
+    global e2,b2
+    e2=Entry(win)
+    b1=Button(win, height=2,width=17,text=' DELETE ',command=deletebooks)
+    b2=Button(win, height=2,width=17,text=' CLOSE ',command=closebooks1)
+    usid.place(x=80,y=100)
+    paswrd.place(x=70,y=140)
+    e1.place(x=180,y=100)
+    e2.place(x=180,y=142)
+    b1.place(x=180,y=180)
+    b2.place(x=180,y=230)
+    win.mainloop()
+
 def deletebooks():
     connectdb()
     if e2.get()=='admin':
-        q='DELETE FROM Book WHERE serial="%i"'
+        q='DELETE FROM Book WHERE bookid="%i"'
         cur.execute(q%(int(e1.get())))
         con.commit()
         win.destroy()
@@ -536,6 +533,35 @@ def viewuser():
     win.mainloop()
     closedb()
 
+def issuedbook():
+    connectdb()
+    q='SELECT * FROM BookIssue '
+    cur.execute(q)
+    details=cur.fetchall()
+    if len(details)!=0:
+        win=Tk()
+        win.title('View Books')
+        win.geometry("800x300+270+180")
+        win.resizable(False,False)    
+        treeview=Treeview(win,columns=("Student ID","Book ID","Issue Date","Expiry Date"),show='headings')
+        treeview.heading("Student ID", text="Student ID")
+        treeview.heading("Book ID", text="Book ID")
+        treeview.heading("Issue Date", text="Issue Date")
+        treeview.heading("Expiry Date", text="Expiry Date")
+        treeview.column("Student ID", anchor='center')
+        treeview.column("Book ID", anchor='center')
+        treeview.column("Issue Date", anchor='center')
+        treeview.column("Expiry Date", anchor='center')
+        index=0
+        iid=0
+        for row in details:
+            treeview.insert("",index,iid,value=row)
+            index=iid=index+1
+        treeview.pack()
+        win.mainloop()
+    else:
+        messagebox.showinfo("Books","No Book Issued")
+    closedb()
 
 def deleteuser():
     global win
@@ -583,9 +609,9 @@ def connectdb():
     cur.execute('USE LIBRARY')
     global enter
     if enter==1:
-        l='CREATE TABLE IF NOT EXISTS Login(name varchar(20),userid varchar(10),password varchar(50),yearlevel varchar(20),course varchar(20))'
-        b='CREATE TABLE IF NOT EXISTS Book(subject varchar(20),title varchar(20),author varchar(20),serial int(5))'
-        i='CREATE TABLE IF NOT EXISTS BookIssue(stdid varchar(20),serial varchar(10),issue date,exp date)'
+        l='CREATE TABLE IF NOT EXISTS Login(name varchar(50),userid varchar(10),password varchar(30),yearlevel varchar(20),course varchar(20))'
+        b='CREATE TABLE IF NOT EXISTS Book(title varchar(50),author varchar(50),genre varchar(50),bookid int(15))'
+        i='CREATE TABLE IF NOT EXISTS BookIssue(stdid varchar(50),bookids varchar(50),issue date,exp date)'
         cur.execute(l)
         cur.execute(b)
         cur.execute(i)
